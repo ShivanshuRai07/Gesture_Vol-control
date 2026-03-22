@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gesture Volume Control - Mobile</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- MediaPipe dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Gesture Control</h1>
+    <div class="video-wrapper">
+      <video class="input_video" playsinline></video>
+      <canvas class="output_canvas"></canvas>
+      <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p>Initializing AI...</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="volume-status">
+        <span class="label">Volume</span>
+        <span class="value" id="vol-value">0%</span>
+      </div>
+      <div class="volume-bar-bg">
+        <div class="volume-bar-fill" id="vol-fill"></div>
+      </div>
+      <p class="hint">Pinch your thumb and index finger to adjust.</p>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

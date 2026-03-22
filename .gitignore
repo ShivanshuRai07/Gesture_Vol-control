@@ -1,0 +1,12 @@
+__pycache__/
+*.task
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
+build/
+.env
+.venv/
+env/
+venv/
+*.log
