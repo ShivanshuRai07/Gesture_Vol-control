@@ -28,10 +28,25 @@ class HandTracker:
         self.results = self.detector.detect(mp_image)
         
         if draw and self.results.hand_landmarks:
+            connections = [(0, 1), (1, 2), (2, 3), (3, 4), 
+                           (0, 5), (5, 6), (6, 7), (7, 8), 
+                           (5, 9), (9, 10), (10, 11), (11, 12), 
+                           (9, 13), (13, 14), (14, 15), (15, 16), 
+                           (13, 17), (0, 17), (17, 18), (18, 19), (19, 20)]
+                           
             for hand_landmarks in self.results.hand_landmarks:
-                # Basic drawing (can be improved)
+                h, w, _ = img.shape
+                # First draw all connecting lines in white
+                for connection in connections:
+                    idx1, idx2 = connection
+                    lm1 = hand_landmarks[idx1]
+                    lm2 = hand_landmarks[idx2]
+                    p1 = (int(lm1.x * w), int(lm1.y * h))
+                    p2 = (int(lm2.x * w), int(lm2.y * h))
+                    cv2.line(img, p1, p2, (255, 255, 255), 2)
+                    
+                # Then draw joints in pink/magenta so they appear on top
                 for landmark in hand_landmarks:
-                    h, w, _ = img.shape
                     x, y = int(landmark.x * w), int(landmark.y * h)
                     cv2.circle(img, (x, y), 5, (255, 0, 255), cv2.FILLED)
         return img

@@ -9,16 +9,23 @@ class FloatingMenu:
         # Window properties - using standard window for maximum compatibility
         self.root.attributes("-topmost", True)
         self.root.geometry("80x80+300+300")  # Slightly larger for standard window
-        self.root.config(bg='#0078d7')
+        # Match the concentric rings from the image
+        bg_col = '#11151c'
+        outer_col = '#242a33'
+        mid_col = '#6b7681'
+        inner_col = '#a7afb5'
         
+        self.root.config(bg=bg_col)
         self._x = 0
         self._y = 0
-        
-        self.canvas = tk.Canvas(self.root, width=60, height=60, bg='#0078d7', highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, width=60, height=60, bg=bg_col, highlightthickness=0)
         self.canvas.pack()
         
-        # Draw the blue circle
-        self.circle = self.canvas.create_oval(2, 2, 58, 58, fill='#0078d7', outline='white', width=2)
+        # Draw concentric rings
+        self.canvas.create_oval(2, 2, 58, 58, fill=outer_col, outline='')
+        self.canvas.create_oval(10, 10, 50, 50, fill=mid_col, outline='')
+        self.canvas.create_oval(16, 16, 44, 44, fill=inner_col, outline='')
+        self.canvas.create_oval(22, 22, 38, 38, fill='white', outline='')
         
         # Ensure it's shown
         self.root.deiconify()

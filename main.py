@@ -63,45 +63,68 @@ class GestureVolumeApp:
                 lm_list = self.detector.find_position(img, draw=False)
                 
                 if len(lm_list) != 0 and self.control_enabled:
-                    # Landmark 8: Index Tip, Landmark 0: Wrist, Landmark 9: Middle MCP
+                    # Landmark 4: Thumb Tip, Landmark 8: Index Tip, Landmark 0: Wrist, Landmark 9: Middle MCP
+                    thumb_tip = lm_list[4]
                     index_tip = lm_list[8]
                     wrist = lm_list[0]
                     palm_base = lm_list[9]
+                    
+                    if self.show_live_view:
+                        h, w, _ = img.shape
+                        x1, y1 = thumb_tip[1], thumb_tip[2]
+                        x2, y2 = index_tip[1], index_tip[2]
+                        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+                        
+                        # Green line and Pink midpoint between thumb and index
+                        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
+                        cv2.circle(img, (cx, cy), 8, (255, 0, 255), cv2.FILLED)
                     
                     # Calculate palm size for normalization
                     palm_size = np.hypot(palm_base[1] - wrist[1], palm_base[2] - wrist[2])
                     
                     if palm_size > 0:
-                        # Normalize the vertical distance
-                        # This makes the tracking independent of how far you are from the camera
-                        relative_y = (wrist[2] - index_tip[2]) / palm_size
+                        # Pinch distance between thumb and index finger
+                        length = np.hypot(index_tip[1] - thumb_tip[1], index_tip[2] - thumb_tip[2])
+                        relative_dist = length / palm_size
                         
-                        # Typical range for relative_y when pointing: 0.5 to 1.5
-                        vol_per_raw = np.interp(relative_y, [0.8, 1.8], [0, 100])
+                        # Typical range for relative_dist when pinching: 0.3 (closed) to 1.2 (open)
+                        vol_per_raw = np.interp(relative_dist, [0.4, 1.3], [0, 100])
                         vol_per_raw = np.clip(vol_per_raw, 0, 100)
                         
                         # Smoothing
                         self.current_vol_smooth = 0.2 * vol_per_raw + 0.8 * self.current_vol_smooth
                         self.vol_ctrl.set_volume_by_percentage(self.current_vol_smooth)
 
-                    if self.show_live_view:
-                        h, w, _ = img.shape
-                        cv2.line(img, (wrist[1], wrist[2]), (index_tip[1], index_tip[2]), (255, 255, 0), 2)
-                        cv2.circle(img, (index_tip[1], index_tip[2]), 10, (255, 0, 0), cv2.FILLED)
-                        
-                        # UI Feedback
-                        cv2.rectangle(img, (w - 30, int(h * 0.2)), (w - 10, int(h * 0.8)), (200, 200, 200), 2)
-                        indicator_y = int(np.interp(self.current_vol_smooth, [0, 100], [h * 0.8, h * 0.2]))
-                        cv2.circle(img, (w - 20, indicator_y), 8, (0, 255, 0), cv2.FILLED)
-
                 if self.show_live_view:
-                    # Add current volume data to image
                     current_vol = self.vol_ctrl.get_current_volume_percentage()
-                    cv2.putText(img, f"Volume: {int(current_vol)}%", (10, 30), 
+                    h, w, _ = img.shape
+                    
+                    # Volume: X% (Top-Left, Red)
+                    cv2.putText(img, f"Volume: {int(current_vol)}%", (40, 50), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                                
+                    # "Working 100" (Top-Right, Green) - Moved to avoid overlap
+                    cv2.putText(img, "Working 100", (w - 220, 50), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                     
+                    # Vertical volume bar (Left side, Red filled)
+                    bar_x1, bar_y1 = 50, 150
+                    bar_x2, bar_y2 = 85, 400
+                    
+                    # Outline
+                    cv2.rectangle(img, (bar_x1, bar_y1), (bar_x2, bar_y2), (255, 255, 255), 3)
+                    
+                    # Filled volume rectangle
+                    vol_bar_y = int(np.interp(current_vol, [0, 100], [bar_y2, bar_y1]))
+                    cv2.rectangle(img, (bar_x1, vol_bar_y), (bar_x2, bar_y2), (0, 0, 255), cv2.FILLED)
+                    
+                    # Volume Percentage text below bar (Red)
+                    cv2.putText(img, f"{int(current_vol)}", (45, 450), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+                    
                     window_name = "Gesture Volume - Live View"
-                    cv2.imshow(window_name, img)
+                    small_img = cv2.resize(img, (0, 0), fx=0.5, fy=0.5)
+                    cv2.imshow(window_name, small_img)
                     
                     # Check if window was closed via 'X' button
                     if cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
